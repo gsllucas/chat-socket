@@ -5,20 +5,134 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat in real time com Socket.io</title>
+  <title>Chat in real time with Socket.io</title>
+  <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+    integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+    crossorigin="anonymous"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI";
+    }
+
+    body {
+      height: 100%;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .message-box {
+      border: 1px solid #c7c7c7;
+      width: 500px;
+      height: 500px;
+      margin-bottom: 8px;
+      overflow-y: auto;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    button {
+      border: 1px solid #c7c7c7;
+      width: 500px;
+      padding: 8px;
+      cursor: pointer;
+      background: #2e509b;
+      color: #fff;
+      border-radius: 6px;
+      font-family: "Segoe UI";
+    }
+
+    input {
+      border: 1px solid #c7c7c7;
+      width: 500px;
+      padding: 8px;
+      margin-bottom: 8px;
+      display: block;
+      border-radius: 6px;
+      font-family: "Segoe UI";
+    }
+
+    .message-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      color: #3f3c3c;
+    }
+
+    .message {
+      border-radius: 6px;
+      padding: 8px;
+      background-color: #e9e9e9;
+      margin: 8px;
+    }
+
+    .message:nth-child(odd) {
+      background-color: #c7c7c7;
+      color: #3f3c3c;
+    }
+  </style>
 </head>
 
 <body>
   <div class="chat-container">
-    <div class="message-box"></div>
-    <div>
-      <form>
-        <input type="text" />
-        <button type="submit">Enviar mensagem</button>
-      </form>
+    <input type="text" name="author" placeholder="Digite seu nome" />
+    <div class="message-box">
+      <ul class="message-list">
+      </ul>
     </div>
+    <form>
+      <input type="text" name="message" placeholder="Digite sua mensagem" />
+      <button class="button">Enviar mensagem</button>
+    </form>
   </div>
-  <script type="text/javascript" src="/socket-io/client.js"></script>
+  <script type="text/javascript">
+    var socket = io('http://localhost:3000');
+
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const author = document.querySelector('[name=author]').value;
+      const message = document.querySelector('[name=message]').value;
+
+      const messageObj = {
+        author,
+        message
+      };
+
+      renderMessages(messageObj);
+
+      socket.emit('sendMessage', messageObj);
+    });
+
+    socket.on('getMessages', data => {
+      console.log(data);
+    });
+
+    socket.on('receivedMessage', message => {
+      renderMessages(message);
+    });
+
+    socket.on('loadMessages', messages => {
+      for (message of messages) {
+        renderMessages(message);
+      }
+    })
+
+    function renderMessages(message) {
+      const messageList = document.querySelector('.message-list');
+      const element = document.createElement('li');
+      element.innerHTML = `<li class="message">Nome: <strong>${message.author}</strong> <br>Mensagem: ${message.message}</li>`
+      messageList.appendChild(element);
+    }
+  </script>
 </body>
 
 </html>
